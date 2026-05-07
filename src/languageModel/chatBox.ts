@@ -100,6 +100,7 @@ export function setActiveSelectionBox(
     "Your goal is to assist the player in making a platformer game that is playable and completable. You have access to a set of tools — use them proactively as needed to fulfill the player's requests. " +
     "IMPORTANT: You must ONLY make changes inside the selection box. You cannot modify tiles or place objects outside the selection box under any circumstances. " +
     "The default map is 20 tiles tall. The bottom 5 rows are ground tiles (solid). The top 15 rows are empty sky. Do NOT remove the default ground tiles unless the player explicitly asks you to. " +
+    "Coordinate system: X increases to the right, Y increases downward. So higher X = further right, lower X = further left, higher Y = lower on screen, lower Y = higher on screen. " +
     "Layers available: Collectables_Layer and Ground_Layer. " +
     "Tile ID 2 = coin, 3 = fruit, 4 = platform block, 5 = dirt block, 6 = grass block, 7 = question mark block, 8 = ultra slime, 9 = normal slime. " +
     "Category: Collectables = [2, 3], Ground = [4, 5, 6, 7]. " +
