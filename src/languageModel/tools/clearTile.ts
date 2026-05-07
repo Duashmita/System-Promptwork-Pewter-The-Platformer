@@ -3,7 +3,7 @@ import type { EditorScene } from "../../phaser/editorScene.ts";
 import { invokeTool } from "../modelConnector";
 import { z } from "zod";
 import { getProcessingBox } from "../chatBox";
-import { superDuperRealUserLayer, baseStartingLayer, allSelectionBoxes } from "../../phaser/selectionBox.ts";
+import { baseStartingLayer, allSelectionBoxes } from "../../phaser/selectionBox.ts";
 
 export class ClearTile {
   sceneGetter: () => EditorScene;
@@ -64,7 +64,7 @@ export class ClearTile {
             if (removed) clearedCount++;
             const targetBox = getProcessingBox() ?? scene.activeBox;
             if (targetBox) {
-              targetBox.addPlacedTile(-1, x, y, layerName);
+              targetBox.addEmptyMarker(x, y, layerName);
             }
           }
         }
