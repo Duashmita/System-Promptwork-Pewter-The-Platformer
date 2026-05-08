@@ -105,6 +105,9 @@ export class EditorScene extends Phaser.Scene {
     const seen = new Set<string>();
     const draw = (tileIndex: number, x: number, y: number) => {
       if (tileIndex !== -1) return;
+      const g = GROUND_LAYER.getTileAt(x, y);
+      const c = COLLECTABLES_LAYER.getTileAt(x, y);
+      if ((g && g.index > 1) || (c && c.index > 1)) return;
       const key = `${x},${y}`;
       if (seen.has(key)) return;
       seen.add(key);
@@ -1159,6 +1162,24 @@ export class EditorScene extends Phaser.Scene {
 
     if (target) {
       target.addPlacedTile(tileIndex, x, y, layer.layer.name);
+      // Cross-layer cleanup: remove the opposing layer's entry so replaceAllBoxes
+      // doesn't re-apply a collectable over a solid block or vice versa.
+      if (tileIndex > 1) {
+        const isGround = layer.layer.name === "Ground_Layer";
+        const opposingLayerName = isGround ? "Collectables_Layer" : "Ground_Layer";
+        const opposingLayer = isGround ? this.collectablesLayer : this.groundLayer;
+        const opposingTile = opposingLayer.getTileAt(x, y);
+        if (opposingTile && opposingTile.index > 1) {
+          const idx = target.placedTiles.findIndex(
+            (t) => t.x === x && t.y === y && t.layerName === opposingLayerName,
+          );
+          if (idx !== -1) {
+            target.placedTiles.splice(idx, 1);
+          } else {
+            target.placedTiles.push({ tileIndex: -1, x, y, layerName: opposingLayerName });
+          }
+        }
+      }
     } else {
       addPlacedTile(superDuperRealUserLayer, tileIndex, x, y, layer.layer.name);
       if (tileIndex !== -1) {
@@ -1732,6 +1753,7 @@ export class EditorScene extends Phaser.Scene {
       16 * this.SCALE,
       16 * this.SCALE,
     );
+
   }
 
   startSelection(pointer: Phaser.Input.Pointer) {

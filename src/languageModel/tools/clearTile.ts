@@ -51,6 +51,8 @@ export class ClearTile {
       const { xMin, xMax, yMin, yMax, layerName } = args;
       const map = scene.map;
       const layer = map.getLayer(layerName)?.tilemapLayer;
+      const opposingLayerName = layerName === "Ground_Layer" ? "Collectables_Layer" : "Ground_Layer";
+      const opposingLayer = map.getLayer(opposingLayerName)?.tilemapLayer;
 
       if (!layer) {
         return `❌ Tool Failed: layer '${layerName}' not found.`;
@@ -62,9 +64,11 @@ export class ClearTile {
           for (let y = yMin; y <= yMax; y++) {
             const removed = map.removeTileAt(x, y, false, false, layer);
             if (removed) clearedCount++;
+            if (opposingLayer) map.removeTileAt(x, y, false, false, opposingLayer);
             const targetBox = getProcessingBox() ?? scene.activeBox;
             if (targetBox) {
-              targetBox.addEmptyMarker(x, y, layerName);
+              targetBox.addEmptyMarker(x, y, "Ground_Layer");
+              targetBox.addEmptyMarker(x, y, "Collectables_Layer");
             }
           }
         }
@@ -243,11 +247,11 @@ export class ClearTile {
       name: "clearTiles",
       schema: ClearTile.argsSchema,
       description: `
-Clears a rectangular section of the map by removing tiles from the specified layer. Also removes any enemies whose position falls within the cleared region.
+Clears a rectangular section of the map, removing tiles from BOTH Ground_Layer and Collectables_Layer at every position in the region. Also removes any enemies whose position falls within the cleared region.
 
 - (xMin, yMin): top-left inclusive coordinates.
 - (xMax, yMax): bottom-right inclusive coordinates.
-- layerName: the name of the target map layer. Choose between 'Ground_Layer' and 'Collectables_Layer'
+- layerName: the layer you primarily intend to clear (used for reporting). Both layers are always cleared regardless of this value.
 `,
     },
   );

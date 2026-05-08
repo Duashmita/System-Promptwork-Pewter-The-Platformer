@@ -36,7 +36,7 @@ export const superDuperRealUserLayer: {
   tileIndex: number,
   x: number,
   y: number,
-  layerName: string
+  layerName: string,
 }[] = [
     // { tileIndex: 7, x: 5, y: 5, layerName: "Ground_Layer" }, // ULTRA SLIME
     // { tileIndex: 8, x: 6, y: 5, layerName: "Ground_Layer" } // normal slime
@@ -201,6 +201,7 @@ export class SelectionBox {
   };
   private previewMap?: Phaser.Tilemaps.Tilemap;
   private previewLayer?: Phaser.Tilemaps.TilemapLayer | null;
+  private previewGraphics?: Phaser.GameObjects.Graphics;
   private dragOriginStart?: Phaser.Math.Vector2; // where the drag began (tile coords)
 
   constructor(
@@ -1784,6 +1785,26 @@ export class SelectionBox {
     const sX = Math.min(this.start.x, this.end.x);
     const sY = Math.min(this.start.y, this.end.y);
     this.previewLayer.setPosition(sX * tileW, sY * tileH);
+    this.drawPreviewEmptyTiles(sX, sY, tileW, tileH);
+  }
+
+  private drawPreviewEmptyTiles(sX: number, sY: number, tileW: number, tileH: number): void {
+    if (!this.previewGraphics) {
+      this.previewGraphics = this.scene.add.graphics();
+      this.previewGraphics.setDepth(1003);
+      this.previewGraphics.setAlpha(0.75);
+    }
+    this.previewGraphics.clear();
+    if (!this.dragSnapshot) return;
+    for (const t of this.dragSnapshot.tiles) {
+      if (t.index !== -1) continue;
+      const px = (sX + t.dx) * tileW;
+      const py = (sY + t.dy) * tileH;
+      this.previewGraphics.lineStyle(1, 0xff0000, 1);
+      this.previewGraphics.lineBetween(px, py, px + tileW, py + tileH);
+      this.previewGraphics.lineStyle(1, 0xffffff, 1);
+      this.previewGraphics.lineBetween(px + tileW, py, px, py + tileH);
+    }
   }
 
   private destroyPreviewLayer(): void {
@@ -1795,6 +1816,10 @@ export class SelectionBox {
       (this.previewMap as any).destroy?.();
       this.previewMap = undefined;
     }
+    if (this.previewGraphics) {
+      this.previewGraphics.destroy();
+      this.previewGraphics = undefined;
+    }
   }
 
   private updatePreviewLayerPosition(): void {
@@ -1803,6 +1828,7 @@ export class SelectionBox {
     const sX = Math.min(this.start.x, this.end.x);
     const sY = Math.min(this.start.y, this.end.y);
     this.previewLayer.setPosition(sX * map.tileWidth, sY * map.tileHeight);
+    this.drawPreviewEmptyTiles(sX, sY, map.tileWidth, map.tileHeight);
   }
 
   private commitMoveToCurrentPosition(): void {
